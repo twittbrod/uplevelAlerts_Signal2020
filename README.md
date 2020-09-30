@@ -57,7 +57,7 @@ Whether it's IT service alerts, emergency notifications, or reminders, Account N
     - subject: email subject
     - body: email content
   - Note: this uses an email template in my account.  This should be updated to use your template.  For information on templates, see https://sendgrid.com/blog/how-to-use-sendgrids-dynamic-templates-for-your-transactional-emails/.
-  - SendGrid API keys is set as an environment variable
+  - SendGrid API key is set as an environment variable
 
 * ### [SendFaxWidget.js](https://github.com/twittbrod/uplevelAlerts_Signal2020/blob/master/SendFaxWidget.js)
   - Function invoked from Studio to send a fax using Twilio's Programmable Fax
