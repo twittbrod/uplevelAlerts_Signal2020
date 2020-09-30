@@ -1,0 +1,355 @@
+{
+  "description": "A New Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingCall"
+        },
+        {
+          "next": "split_smsOptIn",
+          "event": "incomingRequest"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -20,
+          "y": -40
+        }
+      }
+    },
+    {
+      "name": "split_smsOptIn",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "split_whatsappOptin",
+          "event": "noMatch"
+        },
+        {
+          "next": "send_sms",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to 1",
+              "arguments": [
+                "{{flow.data.smsOptIn}}"
+              ],
+              "type": "equal_to",
+              "value": "1"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.data.smsOptIn}}",
+        "offset": {
+          "x": 285,
+          "y": 136
+        }
+      }
+    },
+    {
+      "name": "send_sms",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "split_whatsappOptin",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 430,
+          "y": 390
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "{{flow.data.msgBody}}"
+      }
+    },
+    {
+      "name": "split_whatsappOptin",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "split_emailOptin",
+          "event": "noMatch"
+        },
+        {
+          "next": "send_whatsapp",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to 1",
+              "arguments": [
+                "{{flow.data.whatsappOptIn}}"
+              ],
+              "type": "equal_to",
+              "value": "1"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.data.whatsappOptIn}}",
+        "offset": {
+          "x": 240,
+          "y": 660
+        }
+      }
+    },
+    {
+      "name": "send_whatsapp",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "split_emailOptin",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 350,
+          "y": 930
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "whatsapp:+14155238886",
+        "to": "whatsapp:{{contact.channel.address}}",
+        "body": "{{flow.data.msgBody}}"
+      }
+    },
+    {
+      "name": "split_emailOptin",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "split_voicecallOptin",
+          "event": "noMatch"
+        },
+        {
+          "next": "TwilioSendgrid",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to 1",
+              "arguments": [
+                "{{flow.data.emailOptIn}}"
+              ],
+              "type": "equal_to",
+              "value": "1"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.data.emailOptIn}}",
+        "offset": {
+          "x": 100,
+          "y": 1190
+        }
+      }
+    },
+    {
+      "name": "TwilioSendgrid",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "split_voicecallOptin",
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 294,
+          "y": 1442
+        },
+        "parameters": [
+          {
+            "value": "{{flow.data.emailaddress}}",
+            "key": "to"
+          },
+          {
+            "value": "{{flow.data.emailsubject}}",
+            "key": "subject"
+          },
+          {
+            "value": "{{flow.data.msgBody}}",
+            "key": "body"
+          }
+        ],
+        "url": "https://platinum-nightingale-5990.twil.io/sendemail"
+      }
+    },
+    {
+      "name": "split_voicecallOptin",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "split_faxOptin",
+          "event": "noMatch"
+        },
+        {
+          "next": "call_voice",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to 1",
+              "arguments": [
+                "{{flow.data.voiceOptIn}}"
+              ],
+              "type": "equal_to",
+              "value": "1"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.data.voiceOptIn}}",
+        "offset": {
+          "x": 120,
+          "y": 1700
+        }
+      }
+    },
+    {
+      "name": "call_voice",
+      "type": "make-outgoing-call-v2",
+      "transitions": [
+        {
+          "next": "say_voice",
+          "event": "answered"
+        },
+        {
+          "event": "busy"
+        },
+        {
+          "event": "noAnswer"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "machine_detection_speech_threshold": "2400",
+        "detect_answering_machine": false,
+        "offset": {
+          "x": 278,
+          "y": 1980
+        },
+        "recording_channels": "mono",
+        "timeout": 60,
+        "machine_detection": "Enable",
+        "trim": "do-not-trim",
+        "record": false,
+        "machine_detection_speech_end_threshold": "1200",
+        "machine_detection_timeout": "30",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "machine_detection_silence_timeout": "5000"
+      }
+    },
+    {
+      "name": "say_voice",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "split_faxOptin",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 290,
+          "y": 2260
+        },
+        "loop": 5,
+        "say": "{{flow.data.msgBody}}"
+      }
+    },
+    {
+      "name": "split_faxOptin",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "noMatch"
+        },
+        {
+          "next": "TwilioFax",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to 1",
+              "arguments": [
+                "{{flow.data.faxOptIn}}"
+              ],
+              "type": "equal_to",
+              "value": "1"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.data.faxOptIn}}",
+        "offset": {
+          "x": 20,
+          "y": 2520
+        }
+      }
+    },
+    {
+      "name": "TwilioFax",
+      "type": "run-function",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 150,
+          "y": 2830
+        },
+        "parameters": [
+          {
+            "value": "{{contact.channel.address}}",
+            "key": "to"
+          },
+          {
+            "value": "{{flow.channel.address}}",
+            "key": "from"
+          },
+          {
+            "value": "{{flow.data.msgbody}}",
+            "key": "body"
+          }
+        ],
+        "url": "https://platinum-nightingale-5990.twil.io/sendfax"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

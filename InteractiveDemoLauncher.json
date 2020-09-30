@@ -1,0 +1,478 @@
+{
+  "description": "A New Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "next": "send_welcome",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingRequest"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "send_and_reply_getChannels",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "split_SMSoptin",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "send_thankyou",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -50,
+          "y": 450
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Choose the channels on which you'd like to receive a notification.  Please reply with the number of your selection.\nA SMS\nB Voice call\nC Email\n\n(For example, to receive a notification on all 3, reply ABC.)",
+        "timeout": "300"
+      }
+    },
+    {
+      "name": "send_welcome",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "send_and_reply_getChannels",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -160,
+          "y": 190
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thank you for joining Signal 2020!  You have reached John's and Tim's Uplevel Account Notifications with a Multichannel Strategy session."
+      }
+    },
+    {
+      "name": "split_SMSoptin",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "set_variables_SMSOptOut",
+          "event": "noMatch"
+        },
+        {
+          "next": "set_variables_SMSOptin",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value contains A",
+              "arguments": [
+                "{{widgets.send_and_reply_getChannels.inbound.Body}}"
+              ],
+              "type": "contains",
+              "value": "A"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.send_and_reply_getChannels.inbound.Body}}",
+        "offset": {
+          "x": -430,
+          "y": 960
+        }
+      }
+    },
+    {
+      "name": "set_variables_SMSOptin",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "split_Voiceoptin",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "1",
+            "key": "smsOptIn"
+          }
+        ],
+        "offset": {
+          "x": -230,
+          "y": 1210
+        }
+      }
+    },
+    {
+      "name": "split_Voiceoptin",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "set_variables_VoiceOptOut",
+          "event": "noMatch"
+        },
+        {
+          "next": "set_variables_VoiceOptin",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Voice",
+              "arguments": [
+                "{{widgets.send_and_reply_getChannels.inbound.Body}}"
+              ],
+              "type": "contains",
+              "value": "B"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.send_and_reply_getChannels.inbound.Body}}",
+        "offset": {
+          "x": -510,
+          "y": 1470
+        }
+      }
+    },
+    {
+      "name": "set_variables_SMSOptOut",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "split_Voiceoptin",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "0",
+            "key": "smsOptIn"
+          }
+        ],
+        "offset": {
+          "x": -630,
+          "y": 1210
+        }
+      }
+    },
+    {
+      "name": "set_variables_VoiceOptOut",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "split_Emailoptin",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "0",
+            "key": "voiceOptIn"
+          }
+        ],
+        "offset": {
+          "x": -640,
+          "y": 1750
+        }
+      }
+    },
+    {
+      "name": "set_variables_VoiceOptin",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "split_Emailoptin",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "1",
+            "key": "voiceOptIn"
+          }
+        ],
+        "offset": {
+          "x": -210,
+          "y": 1740
+        }
+      }
+    },
+    {
+      "name": "split_Emailoptin",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "set_variables_EmailOptOut",
+          "event": "noMatch"
+        },
+        {
+          "next": "set_variables_EmailOptin",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Email",
+              "arguments": [
+                "{{widgets.send_and_reply_getChannels.inbound.Body}}"
+              ],
+              "type": "contains",
+              "value": "C"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.send_and_reply_getChannels.inbound.Body}}",
+        "offset": {
+          "x": -520,
+          "y": 2000
+        }
+      }
+    },
+    {
+      "name": "set_variables_EmailOptOut",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "send_and_reply_msgbody",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "0",
+            "key": "emailOptIn"
+          }
+        ],
+        "offset": {
+          "x": -640,
+          "y": 2270
+        }
+      }
+    },
+    {
+      "name": "set_variables_EmailOptin",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "send_and_reply_getEmailAddress",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "1",
+            "key": "emailOptIn"
+          }
+        ],
+        "offset": {
+          "x": -200,
+          "y": 2270
+        }
+      }
+    },
+    {
+      "name": "http_executeflow",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -390,
+          "y": 3650
+        },
+        "method": "POST",
+        "content_type": "application/x-www-form-urlencoded;charset=utf-8",
+        "parameters": [
+          {
+            "value": "{{trigger.message.From}}",
+            "key": "To"
+          },
+          {
+            "value": "{{trigger.message.To}}",
+            "key": "From"
+          },
+          {
+            "value": "{\"smsOptIn\":\"{{flow.variables.smsOptIn}}\",\"whatsappOptIn\":\"0\",\"emailOptIn\":\"{{flow.variables.emailOptIn}}\",\"voiceOptIn\":\"{{flow.variables.voiceOptIn}}\",\"emailaddress\":\"{{widgets.send_and_reply_getEmailAddress.inbound.Body}}\",\"emailsubject\":\"Signal 2020 - Uplevel Notifications Demo\",\"msgBody\":\"{{widgets.send_and_reply_msgbody.inbound.Body}}\"}",
+            "key": "Parameters"
+          }
+        ],
+        "url": "https://<account_sid>:<auth_token>@studio.twilio.com/v1/Flows/FW8561484625704d5c1c1a5f3779f34644/Executions"
+      }
+    },
+    {
+      "name": "send_and_reply_getEmailAddress",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "send_and_reply_msgbody",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -190,
+          "y": 2500
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "To receive your email notification, I'll need your email address.  What is your email address?",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "send_and_reply_msgbody",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "send_and_reply_gocommand",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -430,
+          "y": 2800
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "What message would you like to send?",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "send_and_reply_gocommand",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "split_2",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -420,
+          "y": 3070
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "We're all set!  When you're ready to send your notification, tell me GO (within the next hour)!",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "split_2",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "send_and_reply_gocommand",
+          "event": "noMatch"
+        },
+        {
+          "next": "http_executeflow",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value contains GO",
+              "arguments": [
+                "{{widgets.send_and_reply_gocommand.inbound.Body}}"
+              ],
+              "type": "contains",
+              "value": "GO"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.send_and_reply_gocommand.inbound.Body}}",
+        "offset": {
+          "x": -420,
+          "y": 3360
+        }
+      }
+    },
+    {
+      "name": "send_thankyou",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 340,
+          "y": 950
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thank you for viewing our session.  You can find code and details from the session at https://github.com/twittbrod/uplevelAlerts_Signal2020."
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

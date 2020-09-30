@@ -1,0 +1,327 @@
+{
+  "description": "A New Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingCall"
+        },
+        {
+          "next": "set_variables_initCounter",
+          "event": "incomingRequest"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -10,
+          "y": -510
+        }
+      }
+    },
+    {
+      "name": "call_participant",
+      "type": "make-outgoing-call-v2",
+      "transitions": [
+        {
+          "next": "say_notification",
+          "event": "answered"
+        },
+        {
+          "next": "send_and_reply_Ack",
+          "event": "busy"
+        },
+        {
+          "next": "send_and_reply_Ack",
+          "event": "noAnswer"
+        },
+        {
+          "next": "send_and_reply_Ack",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "machine_detection_speech_threshold": "2400",
+        "detect_answering_machine": false,
+        "offset": {
+          "x": 290,
+          "y": 200
+        },
+        "recording_channels": "mono",
+        "timeout": 60,
+        "machine_detection": "Enable",
+        "trim": "do-not-trim",
+        "record": false,
+        "machine_detection_speech_end_threshold": "1200",
+        "machine_detection_timeout": "30",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "machine_detection_silence_timeout": "5000"
+      }
+    },
+    {
+      "name": "say_notification",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "gather_ack",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 290,
+          "y": 480
+        },
+        "loop": 1,
+        "say": "{{flow.data.msgbody}}"
+      }
+    },
+    {
+      "name": "gather_ack",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "next": "split_ack",
+          "event": "keypress"
+        },
+        {
+          "event": "speech"
+        },
+        {
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 300,
+          "y": 720
+        },
+        "loop": 1,
+        "finish_on_key": "#",
+        "say": "Press 1 to acknoweldge.",
+        "stop_gather": true,
+        "gather_language": "en",
+        "profanity_filter": "true",
+        "timeout": 5
+      }
+    },
+    {
+      "name": "split_ack",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "gather_ack",
+          "event": "noMatch"
+        },
+        {
+          "next": "say_acceptAck",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to 1",
+              "arguments": [
+                "{{widgets.gather_ack.Digits}}"
+              ],
+              "type": "equal_to",
+              "value": "1"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.gather_ack.Digits}}",
+        "offset": {
+          "x": 250,
+          "y": 1140
+        }
+      }
+    },
+    {
+      "name": "say_acceptAck",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "http_updateSysRec",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 410,
+          "y": 1430
+        },
+        "loop": 1,
+        "say": "Thank you for your acknowledgement.  It has been logged."
+      }
+    },
+    {
+      "name": "http_updateSysRec",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 440,
+          "y": 2440
+        },
+        "method": "POST",
+        "content_type": "application/x-www-form-urlencoded;charset=utf-8",
+        "parameters": [
+          {
+            "value": "This is just a placeholder.",
+            "key": "note"
+          }
+        ],
+        "url": "https://api.twilio.com"
+      }
+    },
+    {
+      "name": "send_and_reply_Ack",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "send_acceptAck",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "set_variables_initCounter",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -130,
+          "y": 1790
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "{{flow.data.msgbody}}\nReply ACK to acknowledge.",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "send_acceptAck",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "http_updateSysRec",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -180,
+          "y": 2100
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thank you for your acknowledgement.  It has been logged."
+      }
+    },
+    {
+      "name": "set_variables_initCounter",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "split_maxIterations",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{%- if flow.variables.count -%}\n  {{flow.variables.count | plus: 1}}\n{%- else -%}\n  0\n{%- endif -%}",
+            "key": "counter"
+          }
+        ],
+        "offset": {
+          "x": 290,
+          "y": -320
+        }
+      }
+    },
+    {
+      "name": "split_maxIterations",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "call_participant",
+          "event": "noMatch"
+        },
+        {
+          "next": "http_updateSysRec_noAck",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value greater_than 2",
+              "arguments": [
+                "{{flow.variables.counter}}"
+              ],
+              "type": "greater_than",
+              "value": "2"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.variables.counter}}",
+        "offset": {
+          "x": 300,
+          "y": -70
+        }
+      }
+    },
+    {
+      "name": "http_updateSysRec_noAck",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 760,
+          "y": 190
+        },
+        "method": "POST",
+        "content_type": "application/x-www-form-urlencoded;charset=utf-8",
+        "parameters": [
+          {
+            "value": "This is just a placeholder.",
+            "key": "note"
+          }
+        ],
+        "url": "https://api.twilio.com"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
