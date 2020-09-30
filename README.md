@@ -7,7 +7,7 @@ Whether it's IT service alerts, emergency notifications, or reminders, Account N
 ## Studio Flows
 (for documentation on importing Studio flows, see https://www.twilio.com/docs/studio/user-guide#importing-and-exporting-flows)
 
-* ### Demo1: NotificationsWorkflow.json
+* ### Demo1: [NotificationsWorkflow.json](https://github.com/twittbrod/uplevelAlerts_Signal2020/blob/master/NotificationsWorkflow.json)
   - Send a notification on opted-in channels including: SMS, voice, Whatsapp, email, or fax.
   - Parameters:
     - To: recipient phone number (E.164)
@@ -23,7 +23,7 @@ Whether it's IT service alerts, emergency notifications, or reminders, Account N
           "emailsubject":"Signal 2020 - Uplevel Notifications Demo",
           "msgBody":"This is a notification to notify you that you are being notified."
         }
-* ### Demo2: EscalatedNotificationsWorkflow.json
+* ### Demo2: [EscalatedNotificationsWorkflow.json](https://github.com/twittbrod/uplevelAlerts_Signal2020/blob/master/EscalatedNotificationsWorkflow.json)
   - Escalate a notification based on the whether the recipient has acknowledged it yet.
     - Call the recipient and play a message.
     - If the recipient does not answer or acknowledge (press 1), send a text message.
@@ -38,7 +38,7 @@ Whether it's IT service alerts, emergency notifications, or reminders, Account N
       > {
           "msgbody":"This is a notification to notify you that you are being notified."
         }
-* ### InteractiveDemoLauncher.json
+* ### [InteractiveDemoLauncher.json](https://github.com/twittbrod/uplevelAlerts_Signal2020/blob/master/InteractiveDemoLauncher.json)
   - The Interactive Demo Launcher flow emulates a system of record or application triggering the Notification Workflow.  In this case, it receives a text message, prompts the initiator to for required information such as channels for the notification and email address, and then triggers the Notification Workflow to execute.
   - This is a live demo that can be accessed by sending ALERT (or really anything other than STOP, CANCEL, UNSUBSCRIBE, HELP, or INFO) to any of these phone numbers:
     - +1 304 449 8743 (+1-304-HI-WUPHF) (US)
@@ -50,7 +50,7 @@ Whether it's IT service alerts, emergency notifications, or reminders, Account N
 
 ## Widget Functions
 
-* ### SendGridEmailWidget.js
+* ### [SendGridEmailWidget.js](https://github.com/twittbrod/uplevelAlerts_Signal2020/blob/master/SendGridEmailWidget.js)
   - Function invoked from Studio to send an email through Twilio SendGrid
   - Parameters:
     - to: recipient email address
@@ -59,7 +59,7 @@ Whether it's IT service alerts, emergency notifications, or reminders, Account N
   - Note: this uses an email template in my account.  This should be updated to use your template.  For information on templates, see https://sendgrid.com/blog/how-to-use-sendgrids-dynamic-templates-for-your-transactional-emails/.
   - SendGrid API keys is set as an environment variable
 
-* ### SendFaxWidget.js
+* ### [SendFaxWidget.js](https://github.com/twittbrod/uplevelAlerts_Signal2020/blob/master/SendFaxWidget.js)
   - Function invoked from Studio to send a fax using Twilio's Programmable Fax
   - Parameters:
     - to: recipient phone number (E.164)
